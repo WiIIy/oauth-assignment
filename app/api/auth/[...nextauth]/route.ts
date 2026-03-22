@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import {PrismaClient} from "../../generated/prisma/client";
+import {PrismaClient} from "../../../generated/prisma/client";
 import { PrismaPg } from '@prisma/adapter-pg';
 
 const connectionString = process.env.DATABASE_URL!;
@@ -13,7 +13,7 @@ const allowedEmails = [
   "sherinkhairalol@gmail.com",
 ];
 
-export default NextAuth({
+const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
 
   providers: [
@@ -31,7 +31,6 @@ export default NextAuth({
         ? "editor"
         : "viewer";
 
-      // upsert user role into DB
       await prisma.user.upsert({
         where: { email: user.email },
         update: { role },
@@ -48,10 +47,11 @@ export default NextAuth({
 
     async session({ session, user }) {
       if (session.user) {
-        // attach role to session
         session.user.role = user.role;
       }
       return session;
     },
   },
 });
+
+export { handler as GET, handler as POST };
