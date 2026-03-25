@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client"
-  output   = "../node_modules/@prisma/client"
+  output   = "../app/generated/prisma"
 }
 
 datasource db {
@@ -15,3 +15,10 @@ model User {
   role  String  @default("viewer")
   theme String  @default("light")
 }
+
+model AllowedEmail {
+  id    String  @id @default(cuid())
+  email String  @unique
+  role  String  @default("viewer") // "viewer" atau "editor"
+}
+

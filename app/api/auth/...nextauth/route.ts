@@ -8,11 +8,6 @@ const connectionString = process.env.DATABASE_URL!;
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
-const allowedEmails = [
-  "sherinkhaira@gmail.com",
-  "sherinkhairalol@gmail.com",
-];
-
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
 
@@ -24,12 +19,15 @@ const handler = NextAuth({
   ],
 
   callbacks: {
-  async signIn({ user }) {
+    async signIn({ user }) {
       if (!user.email) return false;
 
-      const role = allowedEmails.includes(user.email)
-        ? "editor"
-        : "viewer";
+      // Check if email is in AllowedEmail table
+      const allowedEmail = await prisma.allowedEmail.findUnique({
+        where: { email: user.email },
+      });
+
+      const role = allowedEmail?.role || "viewer";
 
       await prisma.user.upsert({
         where: { email: user.email },
