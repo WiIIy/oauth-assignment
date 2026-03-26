@@ -1,12 +1,18 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import {PrismaClient} from "../../../generated/prisma/client";
+import { PrismaClient } from "../../../generated/prisma/client";
 import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
-const connectionString = process.env.DATABASE_URL!;
-const adapter = new PrismaPg({ connectionString });
+const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+const adapter = new PrismaPg(pool); // 3. Pass the pool, not an object
 const prisma = new PrismaClient({ adapter });
+
+const allowedEmails = [
+  "sherinkhaira@gmail.com",
+  "sherinkhairalol@gmail.com",
+];
 
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -19,35 +25,24 @@ const handler = NextAuth({
   ],
 
   callbacks: {
-    async signIn({ user }) {
-      if (!user.email) return false;
-
-      // Check if email is in AllowedEmail table
-      const allowedEmail = await prisma.allowedEmail.findUnique({
-        where: { email: user.email },
-      });
-
-      const role = allowedEmail?.role || "viewer";
-
-      await prisma.user.upsert({
-        where: { email: user.email },
-        update: { role },
-        create: {
-          email: user.email,
-          name: user.name,
-          image: user.image,
-          role,
-        },
-      });
-
-      return true;
-    },
-
+    //callback pas signin, assign role
     async session({ session, user }) {
       if (session.user) {
         session.user.role = user.role;
       }
       return session;
+    },
+  },
+
+  //make user
+  events: {
+    async createUser({ user }) {
+      if (user.email && allowedEmails.includes(user.email)) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { role: "editor" },
+        });
+      }
     },
   },
 });
