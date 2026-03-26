@@ -15,7 +15,7 @@ export default function Home() {
       {/* Auth section */}
       <div style={{ marginBottom: "1rem" }}>
         {!session ? (
-          <button onClick={() => signIn("google")}>
+          <button onClick={() => signIn("email")}>
             Login with Google
           </button>
         ) : (

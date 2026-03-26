@@ -8,7 +8,4 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
-  datasource: {
-    url: `postgresql://postgres:232323@localhost:5432/nextauth_db`,
-  },
 });

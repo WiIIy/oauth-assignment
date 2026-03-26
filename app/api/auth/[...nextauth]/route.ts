@@ -2,20 +2,14 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import {PrismaClient} from "../../../generated/prisma/client";
-import { PrismaPg } from '@prisma/adapter-pg';
 
-const connectionString = process.env.DATABASE_URL!;
-const adapter = new PrismaPg({ connectionString });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
-const allowedEmails = [
-  "sherinkhaira@gmail.com",
-  "sherinkhairalol@gmail.com",
-];
-
+//buat authentication handler
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
 
+  //provider yang digunakan adalah google
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -23,28 +17,20 @@ const handler = NextAuth({
     }),
   ],
 
-  callbacks: {
-    async signIn({ user }) {
-      if (!user.email) return false;
-
-      const role = allowedEmails.includes(user.email)
-        ? "editor"
-        : "viewer";
-
-      await prisma.user.upsert({
-        where: { email: user.email },
-        update: { role },
-        create: {
-          email: user.email,
-          name: user.name,
-          image: user.image,
-          role,
-        },
-      });
-
-      return true;
+  //event setelah user telah di create
+  events: {
+    async createUser({ user }) {
+      if (user.email && allowedEmails.includes(user.email)) {
+        await prisma.user.update({ //prisma sudah menghandle fungsionalitas ini
+          where: { id: user.id },
+          data: { role: "editor" },
+        });
+      }
     },
+  },
 
+  //beri role ke front end
+  callbacks: {
     async session({ session, user }) {
       if (session.user) {
         session.user.role = user.role;
