@@ -24,5 +24,8 @@ Solusinya
 
 6. Safety tips. Saya awalnya menyetor kredensial allowedEmails dalam constant di page [...nextauth]/route.ts untuk testing. Seharusnya kredensial ini tidak di push ke github. Jika repositori publik, orang dapat melihat commit history dan melihat data tersebut. Saya telah menyetor allowed emails dalam database untuk keamanan
 
+7. Seeding database dengan "npx prisma db seed" memunculkan error " Cannot find module ..." karena adanya error ESM resolution. Jadi seeding dilakukan dengan command "npx tsx prisma/seed.ts"
+
+8. error "Invalid Compact JWE" disebabkan oleh NEXTAUTH_SECRET yang invalid/corrupt (harus di generate yang baru)
 
 - Sherin Khaira A.M. ~ 2406404112

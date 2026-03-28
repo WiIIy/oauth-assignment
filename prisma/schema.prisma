@@ -63,3 +63,11 @@ model AllowedEmail {
   email String  @unique
   role  String  @default("viewer") // "viewer" | "editor"
 }
+
+// Tabel untuk menyimpan pengaturan global website
+model SiteSetting {
+  id         String @id @default("global")
+  background String @default("#ffffff")
+  textColor  String @default("#000000")
+  fontFamily String @default("sans-serif")
+}

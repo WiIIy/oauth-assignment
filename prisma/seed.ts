@@ -1,22 +1,29 @@
-import "dotenv/config";
-import { PrismaClient } from "../app/generated/prisma/client.js";
-import { PrismaPg } from "@prisma/adapter-pg";
+//seed dalam database adalah starting value, db di isi oleh allowed emails yang hard coded jadi user lain tidak bisa jadi editor
 
-const connectionString = process.env.DATABASE_URL!;
-const adapter = new PrismaPg({ connectionString });
-const prisma = new PrismaClient({ adapter });
+import "dotenv/config";
+import { PrismaClient } from "../app/generated/prisma/client";
+
+const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.allowedEmail.deleteMany({});  // cl ear existing allowed emails
+  const editorEmails = process.env.ALLOWED_EDITORS?.split(",") || []; // ambil emails dari .env dan jadikan array
 
-  await prisma.allowedEmail.createMany({ // add allowed emails
-    data: [
-      { email: "sherinkhaira@gmail.com", role: "editor" },
-      { email: "sherinkhairalol@gmail.com", role: "editor" },
-    ],
-  });
+  if (editorEmails.length === 0) {
+    console.warn("No email found in ALLOWED_EDITORS.");
+    return;
+  }
 
-  console.log("seed data made i guess");
+  await prisma.allowedEmail.deleteMany({});  // clear entries agar tidak ada duplikat
+
+  // format data untuk Prisma
+  const data = editorEmails.map(email => ({
+    email: email.trim(),
+    role: "editor"
+  }));
+
+  await prisma.allowedEmail.createMany({ data });
+
+  console.log(`Seeded ${data.length} allowed emails.`);
 }
 
 main()
